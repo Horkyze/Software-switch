@@ -1,6 +1,24 @@
 #ifndef FUNSTIONS_H
 #define FUNSTIONS_H
 
+void my_log(char * format, ...){
+
+	FILE * fd;
+	#ifdef LOG_FILE
+		fd = fopen(LOG_FILE, "a");
+		if (fd == 0) {
+			printf("fd is zero \n");
+		}
+	#else
+		fd = (FILE *)1; // stdin
+	#endif
+
+	va_list args;
+    va_start( args, format );
+    fprintf(fd, format, args );
+    va_end( args );
+	fclose(fd);
+}
 
 int is_print(u_char c){
 	return (c > 31 && c <= 127);
@@ -22,9 +40,9 @@ char * ip_to_string(u_int ip){
     bytes[0] = ip & 0xFF;
     bytes[1] = (ip >> 8) & 0xFF;
     bytes[2] = (ip >> 16) & 0xFF;
-    bytes[3] = (ip >> 24) & 0xFF;	
-    sprintf(s, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);  
-    return s;      
+    bytes[3] = (ip >> 24) & 0xFF;
+    sprintf(s, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
+    return s;
 }
 
 
@@ -48,9 +66,9 @@ void dump(const unsigned char * p, int len){
 			printf(" | %s \n", buff);
 			memset(buff, 0, 17);
 			k = 0;
-		} 
+		}
 
-		
+
 	}
 	printf("\n\n");
 }
@@ -99,9 +117,9 @@ Item * LL_add(LL * ll, void * data){
 	    i++;
 	}
 	curr->next = item;
-	
-	
-	
+
+
+
 	item->index = ll->number_of_items;
 	return item;
 }

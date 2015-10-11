@@ -1,5 +1,11 @@
 A software switch with 2 ports.
 
+DEPENDENCIES 
+
+libpcap, C comliper (clang is default), make
+computer with multiple NICs
+administrative rights 
+
 Run
 $ make
 to create a binary inside bin folder.
@@ -8,12 +14,21 @@ Optionaly run
 $ make debug
 to open gdb
 
-Questions:
-Opening a "dead" interface?
 
-Linux only?
+EXAMPLE
 
-ako aj možnosť návrhu viacportového prepínača ??
+sudo ./bin/s_switch -1 eth0 -2 wlan0
 
 
-v
+DOCUMENTATION
+
+Up-to date documentation can be found here:
+https://docs.google.com/document/d/1czP8rZtIDgggMDWtRk03onJesor6wTZoLFDI-oTcymY/edit?usp=sharing
+
+
+CHANGE LOG
+
+11 October 2015
+	- application is able to list available interffaces
+	- forwarding all frames from first interface to second 
+		(only 30 bytes are forwarded, which makes the frames malformed, but still visible in wireshark)
