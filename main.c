@@ -22,13 +22,13 @@ Matej Bellus
 #include "eth_parser.h"
 //#include "parser.h"
 
-typedef struc Rule {
+typedef struct Rule {
 	int action; // ALLOW or DENY
 	pcap_t * port;
 	int direction; // IN or OUT
 	int src_addr_type; // MAC or IP
 	int dst_addr_type; // MAC or IP
-	void * src_addr; 
+	void * src_addr;
 	void * dst_addr;
 	int protocol; // http, icmp, ...
 }Rule;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
 
 
-	pcap_t *handle_1, *handle_2;	
+	pcap_t *handle_1, *handle_2;
 	char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
 	struct bpf_program fp;		/* The compiled filter */
 	char filter_exp[] = "";	/* The filter expression */
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	if ( pcap_activate(handle_1)){
 		printf("Failed to open interface %s\n", p1_interface);
 		exit(-1);
-	}   
+	}
 
     handle_2 = pcap_create(p2_interface, errbuf);
 	if ( pcap_activate(handle_2) ){
