@@ -28,7 +28,7 @@ typedef struct Rule {
 	int direction; // IN or OUT
 	int src_addr_type; // MAC or IP
 	int dst_addr_type; // MAC or IP
-	void * src_addr; 
+	void * src_addr;
 	void * dst_addr;
 	int protocol; // http, icmp, ...
 }Rule;
@@ -127,13 +127,15 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	printf("PORT 1 => %s\n", p1->name);
-	printf("PORT 2 => %s\n", p2->name);
+	printf("PORT 1 => %s\n", p1_interface);
+	printf("PORT 2 => %s\n", p2_interface);
+
 
 	p1->handle = pcap_create(p1->name, errbuf);
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
 		exit(-1);
+
 	} else {
 		printf("Handle activated for %s\n", p1->name);
 	}
