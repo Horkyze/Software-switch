@@ -24,6 +24,20 @@ int is_print(u_char c){
 	return (c > 31 && c <= 127);
 }
 
+
+
+char * get_hex(u_char * data, int size, char delimiter){
+	int i;
+	char * buff = (char * ) calloc(3, size);
+	for (i = 0; i < size; ++i){
+		if(i == size - 1)
+			sprintf(&buff[3*i], "%02X", data[i]);
+		else
+			sprintf(&buff[3*i], "%02X%c", data[i], delimiter);
+	}
+	return buff;
+}
+
 void print_hex(u_char * data, int len){
 	int i;
 	for (i = 0; i < len; ++i)

@@ -3,4 +3,4 @@
 cd ..
 make
 cd utils
-gdb -q --command=debug_commands.gdb ../bin/s_switch
+sudo gdb -q --command=debug_commands.gdb ../bin/s_switch

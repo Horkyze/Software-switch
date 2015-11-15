@@ -3,18 +3,18 @@
 #include <unistd.h>
 
 /* This is our thread function.  It is like main(), but for a thread*/
-void *threadFunc(void *arg)
+void *port_listener(void *arg)
 {
 	char *str;
 	int i = 0;
 
 	str=(char*)arg;
 
-	while(i < 110 )
+	while(1)
 	{
-		usleep(1);
-		printf("threadFunc says: %s\n",str);
-		++i;
+		usleep(1000);
+		printf("%s\n", str);
+
 	}
 
 	return NULL;
@@ -22,10 +22,11 @@ void *threadFunc(void *arg)
 
 int main(void)
 {
-	pthread_t pth;	// this is our thread identifier
+	pthread_t pth[2];	// this is our thread identifier
 	int i = 0;
 
-	pthread_create(&pth,NULL,threadFunc,"foo");
+	pthread_create(&pth[0],NULL,port_listener,"0000");
+	pthread_create(&pth[1],NULL,port_listener,"1111");
 
 	while(i < 100)
 	{
@@ -34,8 +35,9 @@ int main(void)
 		++i;
 	}
 
-	printf("main waiting for thread to terminate...\n");
-	pthread_join(pth,NULL);
+	printf("main waiting for threads to terminate...\n");
+	pthread_join(pth[0],NULL);
+	pthread_join(pth[1],NULL);
 
 	return 0;
 }

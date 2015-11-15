@@ -82,7 +82,16 @@ u_short get_eth_type(eth_2_h * h){
 	return h->eth_type;
 }
 
-
+char * get_src_mac(Frame * f){
+	eth_2_h * hdr;
+	hdr = (eth_2_h*)f->data;
+	return get_hex(hdr->src_addr, 6, ':');
+}
+char * get_dst_mac(Frame * f){
+	eth_2_h * hdr;
+	hdr = (eth_2_h*)f->data;
+	return get_hex(hdr->dst_addr, 6, ':');
+}
 
 
 void print_eth(Frame * f){

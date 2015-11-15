@@ -1,1 +1,1 @@
-r -f capture/trace-1.pcap
+r ./bin/s_switch -1 eth0 -2 lo

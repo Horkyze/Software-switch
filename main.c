@@ -12,17 +12,17 @@ Matej Bellus
 #include <pcap.h>
 #include <arpa/inet.h>
 #include <getopt.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 #include "stdarg.h"
 
-// custom includes
-#include "functions.h"
-#include "eth_parser.h"
-//#include "parser.h"
 
-typedef struc Rule {
+typedef struct Rule {
 	int action; // ALLOW or DENY
 	pcap_t * port;
 	int direction; // IN or OUT
@@ -33,6 +33,37 @@ typedef struc Rule {
 	int protocol; // http, icmp, ...
 }Rule;
 
+typedef struct Port {
+	int id;
+	char * name;
+	pcap_t * handle;
+	pthread_t thread;
+}Port;
+pthread_mutex_t mutex;
+
+Port *p1, *p2;
+
+// custom includes
+#include "functions.h"
+#include "eth_parser.h"
+//#include "parser.h"
+
+#include "port_listener.h"
+
+
+
+
+
+Port * create_port_struct(int i){
+	Port * p;
+	p = (Port *) malloc(sizeof(Port));
+	p->id = i;
+	p->name = (char *) calloc(1, 100);
+	p->handle = 0;
+	p->thread = 0;
+	return p;
+}
+
 void print_usage(){
 	printf("\nSoftware switch implementation by Matej Bellus (c) \n");
 	printf("Usage: s_switch [-l] [-1 <interface_1> -2 <interface_2>] \n\n");
@@ -41,7 +72,6 @@ void print_usage(){
 	printf("   -2 			Second inteface\n");
 	printf("\nEXAMPLE 		sudo ./bin/s_switch -1 eth0 -2 wlan0\n");
 }
-
 
 void list_interfaces(){
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -54,19 +84,39 @@ void list_interfaces(){
   	}
 }
 
+void signal_handler(){
+	printf("Ctrl C - cya ;) \n");
+	printf("\033[?1049l"); // go back
+	exit(0);
+}
+
 int main(int argc, char *argv[])
 {
 
+	signal (SIGINT, signal_handler);
+	printf("\033[?1049h\033[H");
+	printf("Software switch implementation.\n");
+	// for (i = 5; i; i--) {
+	// 	printf("\rgoing back in %d...", i);
+	// 	fflush(stdout);
+	// 	sleep(1);
+	// }
+	
+	
 	int option = 0;
 	char * p1_interface = 0, * p2_interface = 0;
+	pthread_t p1_listener;
+	char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
+	p1 = create_port_struct(1);
+	p2 = create_port_struct(2);
 
 	while ((option = getopt(argc, argv,"h l 1:2:")) != -1) {
 		switch (option) {
 			case '1' :
-				p1_interface = optarg;
+				strcpy(p1->name, optarg);			
 				break;
 			case '2' :
-				p2_interface = optarg;
+				strcpy(p2->name, optarg);
 				break;
 			case 'l':
 				list_interfaces();
@@ -77,46 +127,50 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	printf("PORT 1 => %s\n", p1_interface);
-	printf("PORT 2 => %s\n", p2_interface);
+	printf("PORT 1 => %s\n", p1->name);
+	printf("PORT 2 => %s\n", p2->name);
 
-
-
-	pcap_t *handle_1, *handle_2;	
-	char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
-	struct bpf_program fp;		/* The compiled filter */
-	char filter_exp[] = "";	/* The filter expression */
-
-	struct pcap_pkthdr header;	/* The header that pcap gives us */
-	const u_char *packet_1, *packet_2;		/* The actual packet */
-
-
-	handle_1 = pcap_create(p1_interface, errbuf);
-	if ( pcap_activate(handle_1)){
-		printf("Failed to open interface %s\n", p1_interface);
+	p1->handle = pcap_create(p1->name, errbuf);
+	if ( pcap_activate(p1->handle)){
+		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
 		exit(-1);
-	}   
-
-    handle_2 = pcap_create(p2_interface, errbuf);
-	if ( pcap_activate(handle_2) ){
-		printf("Failed to open interface %s\n", p2_interface);
-		exit(-1);
+	} else {
+		printf("Handle activated for %s\n", p1->name);
 	}
 
-	while (1) {
+	p2->handle = pcap_create(p2->name, errbuf);
+	if ( pcap_activate(p2->handle)){
+		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
+		exit(-1);
+	} else {
+		printf("Handle activated for %s\n", p2->name);
+	}
 
-		/* Grab a packet */
-		packet_1 = pcap_next(handle_1, &header);
-		if (packet_1) {
-			printf("%u\n", header.len);
-			my_log("Got frame with size [%u]\n", header.len);
-			Frame * f = add_frame((u_char*)packet_1, header.len);
-			//print_eth(f);
-			pcap_inject(handle_2, packet_1, 30);
+	printf("Creating threads...\n");
+	pthread_mutex_init(&mutex, NULL);
+	pthread_create(&(p1->thread), 0, port_listener, p1);
+	pthread_create(&(p2->thread), 0, port_listener, p2);
+
+	
+
+	int c;
+	while (scanf("%c", &c)) {
+		switch(c){
+			case 'p': 
+				print_mac();
+				break;
+			case 'c': 
+				clear_mac();
+				break;
 		}
+
 	}
 
-	/* And close the session */
-	pcap_close(handle_1);
-	return(0);
+
+	pthread_join(p1->thread, 0);
+	pthread_join(p2->thread, 0);
+
+	printf("\033[?1049l"); // go back
+
+	return 0;
 }
