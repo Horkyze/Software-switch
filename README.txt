@@ -6,7 +6,7 @@ libpcap, C comliper (clang is default), make
 computer with multiple NICs
 administrative rights 
 
-sudo apt-get install libpcap-dev clang make vim gdb
+sudo apt-get install libpcap-dev clang make vim gdb git
 
 Run
 $ make
