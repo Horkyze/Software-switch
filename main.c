@@ -23,8 +23,9 @@ Matej Bellus
 
 
 typedef struct Rule {
-	int action; // ALLOW or DENY
+	int id;
 	pcap_t * port;
+	int action; // ALLOW or DENY
 	int direction; // IN or OUT
 	int src_addr_type; // MAC or IP
 	int dst_addr_type; // MAC or IP
@@ -40,13 +41,15 @@ typedef struct Port {
 	pthread_t thread;
 }Port;
 pthread_mutex_t mutex;
+int pause_rendering = 0;
 
 Port *p1, *p2;
 
 // custom includes
 #include "functions.h"
 #include "eth_parser.h"
-//#include "parser.h"
+#include "mac_table.h"
+#include "config.h"
 
 #include "port_listener.h"
 
@@ -101,8 +104,8 @@ int main(int argc, char *argv[])
 	// 	fflush(stdout);
 	// 	sleep(1);
 	// }
-	
-	
+
+
 	int option = 0;
 	char * p1_interface = 0, * p2_interface = 0;
 	pthread_t p1_listener;
@@ -113,7 +116,7 @@ int main(int argc, char *argv[])
 	while ((option = getopt(argc, argv,"h l 1:2:")) != -1) {
 		switch (option) {
 			case '1' :
-				strcpy(p1->name, optarg);			
+				strcpy(p1->name, optarg);
 				break;
 			case '2' :
 				strcpy(p2->name, optarg);
@@ -126,9 +129,6 @@ int main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 		}
 	}
-
-	printf("PORT 1 => %s\n", p1_interface);
-	printf("PORT 2 => %s\n", p2_interface);
 
 
 	p1->handle = pcap_create(p1->name, errbuf);
@@ -153,22 +153,22 @@ int main(int argc, char *argv[])
 	pthread_create(&(p1->thread), 0, port_listener, p1);
 	pthread_create(&(p2->thread), 0, port_listener, p2);
 
-	
+	pthread_t config_thread;
+	pthread_create(&config_thread, 0, config, 0);
+	char c;
 
-	int c;
-	while (scanf("%c", &c)) {
-		switch(c){
-			case 'p': 
-				print_mac();
-				break;
-			case 'c': 
-				clear_mac();
-				break;
-		}
+	while (1) {
+		if(pause_rendering == 1)
+			continue;
+
+		// render here
+		system("clear");
+		print_mac();
+		sleep(2);
 
 	}
 
-
+	pthread_join(config_thread, 0);
 	pthread_join(p1->thread, 0);
 	pthread_join(p2->thread, 0);
 

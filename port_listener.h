@@ -1,26 +1,22 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "mac_table.h"
+
 
 
 /* This is our thread function.  It is like main(), but for a thread*/
 void *port_listener(void * arg)
 {
-
-
 	Port * p;
 	p = (Port *)arg;
-
 
 	struct pcap_pkthdr header;
 	const u_char * packet;
 
-
 	printf("Hello from thread :) %s\n", p->name);
 
 
-	while (1) { 
+	while (1) {
 		/* Grab a packet */
 		packet = pcap_next(p->handle, &header);
 		if (packet) {
@@ -34,14 +30,14 @@ void *port_listener(void * arg)
 				char * port = find_port(get_src_mac(f));
 				if(strlen(port) == 0){
 					insert( get_src_mac(f), p->name);
-					printf("New MAC added:%s\n", get_src_mac(f));
+					//printf("New MAC added:%s\n", get_src_mac(f));
 				}
 
 				// if (p->id == 1) // is is eth0
 				// {
 				// 	pcap_inject(p2->handle, packet, 30);
 				// }
-				
+
 			pthread_mutex_unlock (&mutex);
 		}
 	}
