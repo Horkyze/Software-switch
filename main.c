@@ -16,23 +16,15 @@ Matej Bellus
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
+#include <ctype.h>
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 #include "stdarg.h"
 
 
-typedef struct Rule {
-	int id;
-	pcap_t * port;
-	int action; // ALLOW or DENY
-	int direction; // IN or OUT
-	int src_addr_type; // MAC or IP
-	int dst_addr_type; // MAC or IP
-	void * src_addr;
-	void * dst_addr;
-	int protocol; // http, icmp, ...
-}Rule;
+
+
 
 typedef struct Port {
 	int id;
@@ -50,6 +42,9 @@ Port *p1, *p2;
 #include "eth_parser.h"
 #include "mac_table.h"
 #include "config.h"
+#include "rules.h"
+
+
 
 #include "port_listener.h"
 

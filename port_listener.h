@@ -22,21 +22,31 @@ void *port_listener(void * arg)
 		if (packet) {
 			pthread_mutex_lock(&mutex);
 
-
 				Frame * f = add_frame((u_char*)packet, header.len);
-				//print_eth(f);
 
+				int forward = apply_rules(f);
+				if (forward != 1) {
+					// DISCARD Frame
+					continue;
+					pthread_mutex_unlock (&mutex);
+				}
+
+				//print_eth(f);
 
 				char * port = find_port(get_src_mac(f));
 				if(strlen(port) == 0){
+
+					// mac was not found - forward as brodcast
 					insert( get_src_mac(f), p->name);
 					//printf("New MAC added:%s\n", get_src_mac(f));
+
 				}
 
-				// if (p->id == 1) // is is eth0
-				// {
-				// 	pcap_inject(p2->handle, packet, 30);
-				// }
+				if (p->id == 1) {
+					pcap_inject(p2->handle, packet, 30);
+				} else {
+					pcap_inject(p1->handle, packet, 30);
+				}
 
 			pthread_mutex_unlock (&mutex);
 		}

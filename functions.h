@@ -25,6 +25,78 @@ int is_print(u_char c){
 }
 
 
+/* return 1 if string contain only digits, else return 0 */
+int valid_digit(char *ip_str)
+{
+    while (*ip_str) {
+        if (*ip_str >= '0' && *ip_str <= '9')
+            ++ip_str;
+        else
+            return 0;
+    }
+    return 1;
+}
+
+/* return 1 if IP string is valid, else return 0 */
+int is_valid_ip(char *ip_str)
+{
+    int i, num, dots = 0;
+    char *ptr;
+
+    if (ip_str == NULL)
+        return 0;
+
+    ptr = strtok(ip_str, ".");
+
+    if (ptr == NULL)
+        return 0;
+
+    while (ptr) {
+
+        /* after parsing string, it must contain only digits */
+        if (!valid_digit(ptr))
+            return 0;
+
+        num = atoi(ptr);
+
+        /* check for valid IP */
+        if (num >= 0 && num <= 255) {
+            /* parse remaining string */
+            ptr = strtok(NULL, ".");
+            if (ptr != NULL)
+                ++dots;
+        } else
+            return 0;
+    }
+
+    /* valid IP string must contain 3 dots */
+    if (dots != 3)
+        return 0;
+    return 1;
+}
+
+int is_valid_mac(char * mac) {
+    int i = 0;
+    int s = 0;
+
+    while (*mac) {
+       if (isxdigit(*mac)) {
+          i++;
+       }
+       else if (*mac == ':' || *mac == '-') {
+
+          if (i == 0 || i / 2 - 1 != s)
+            break;
+          ++s;
+       }
+       else {
+           s = -1;
+       }
+       ++mac;
+    }
+
+    return (i == 12 && (s == 5 || s == 0));
+}
 
 char * get_hex(u_char * data, int size, char delimiter){
 	int i;

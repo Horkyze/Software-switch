@@ -26,8 +26,15 @@ void * config(void * arg){
 				cmd = get_line();
 
 				if(strcmp(cmd, RULE_ADD) == 0) {
-					printf(" ACTION DIRECTION SRT DST PROTO\n eg: ALLOW IN 1.1.1.1 any http\n");
+					printf("PORT ACTION DIRECTION SRT DST PROTO\n eg: ALLOW IN 1.1.1.1 any http\n");
 					printf(" > ");
+					char a[100];
+					char d[100];
+					char dst[100];
+					char src[100];
+
+					int i;
+					
 					cmd = get_line();
 
 				} else if(strcmp(cmd, RULE_DELETE) == 0){
