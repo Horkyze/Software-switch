@@ -81,7 +81,7 @@ Rule * create_rule(char * action, char * direction, char * dst, char * src, char
 }
 
 int apply_rules(Frame * f){
-    int forward = 0;
+    int forward = 1;
 
 
     return forward;

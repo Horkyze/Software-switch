@@ -27,6 +27,7 @@ void *port_listener(void * arg)
 				int forward = apply_rules(f);
 				if (forward != 1) {
 					// DISCARD Frame
+					printf("Disdarding frame..\n");
 					continue;
 					pthread_mutex_unlock (&mutex);
 				}
@@ -43,9 +44,9 @@ void *port_listener(void * arg)
 				}
 
 				if (p->id == 1) {
-					pcap_inject(p2->handle, packet, 30);
+					pcap_inject(p2->handle, packet, header.len);
 				} else {
-					pcap_inject(p1->handle, packet, 30);
+					pcap_inject(p1->handle, packet, header.len);
 				}
 
 			pthread_mutex_unlock (&mutex);

@@ -143,6 +143,8 @@ int main(int argc, char *argv[])
 		printf("Handle activated for %s\n", p2->name);
 	}
 
+	printf("Deleting mac table..\n");
+	clear_mac();
 	printf("Creating threads...\n");
 	pthread_mutex_init(&mutex, NULL);
 	pthread_create(&(p1->thread), 0, port_listener, p1);
