@@ -31,11 +31,16 @@ typedef struct Port {
 	char * name;
 	pcap_t * handle;
 	pthread_t thread;
+
+	u_long in;
+	u_long out;
+
 }Port;
 pthread_mutex_t mutex;
 int pause_rendering = 0;
 
 Port *p1, *p2;
+char log_b[1024];
 
 // custom includes
 #include "functions.h"
@@ -59,6 +64,8 @@ Port * create_port_struct(int i){
 	p->name = (char *) calloc(1, 100);
 	p->handle = 0;
 	p->thread = 0;
+	p->in = 0;
+	p->out = 0;
 	return p;
 }
 
@@ -83,7 +90,7 @@ void list_interfaces(){
 }
 
 void signal_handler(){
-	printf("Ctrl C - cya ;) \n");
+	my_log("Ctrl C - cya ;) ");
 	printf("\033[?1049l"); // go back
 	exit(0);
 }
@@ -93,7 +100,12 @@ int main(int argc, char *argv[])
 
 	signal (SIGINT, signal_handler);
 	printf("\033[?1049h\033[H");
-	printf("Software switch implementation.\n");
+
+	FILE * f;
+	f = fopen(LOG_FILE, "w");
+	fclose(f);
+
+	my_log("Software switch starting...");
 	// for (i = 5; i; i--) {
 	// 	printf("\rgoing back in %d...", i);
 	// 	fflush(stdout);
@@ -132,7 +144,8 @@ int main(int argc, char *argv[])
 		exit(-1);
 
 	} else {
-		printf("Handle activated for %s\n", p1->name);
+		sprintf(log_b, "Handle activated for %s", p1->name);
+		my_log(log_b);
 	}
 
 	p2->handle = pcap_create(p2->name, errbuf);
@@ -140,12 +153,13 @@ int main(int argc, char *argv[])
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
 		exit(-1);
 	} else {
-		printf("Handle activated for %s\n", p2->name);
+		sprintf(log_b, "Handle activated for %s", p2->name);
+		my_log(log_b);
 	}
 
-	printf("Deleting mac table..\n");
+	my_log("Deleting mac table..");
 	clear_mac();
-	printf("Creating threads...\n");
+	my_log("Creating threads...");
 	pthread_mutex_init(&mutex, NULL);
 	pthread_create(&(p1->thread), 0, port_listener, p1);
 	pthread_create(&(p2->thread), 0, port_listener, p2);
@@ -161,6 +175,10 @@ int main(int argc, char *argv[])
 		// render here
 		system("clear");
 		print_mac();
+		printf("PORT 1 IN  %lu\n", p1->in);
+		printf("PORT 1 OUT %lu\n", p1->out);
+		printf("PORT 2 IN  %lu\n", p2->in);
+		printf("PORT 2 OUT %lu\n", p2->out);
 		sleep(2);
 
 	}

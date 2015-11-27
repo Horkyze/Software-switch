@@ -1,3 +1,5 @@
 bin/s_switch
-.idea/
+bin/*
 log.txt
+.idea/
+

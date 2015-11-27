@@ -1,22 +1,21 @@
 #ifndef FUNSTIONS_H
 #define FUNSTIONS_H
 
-void my_log(char * format, ...){
+void my_log(char * msg){
 
+	time_t t;
+	time(&t);
+	char time[100];
+
+	strcpy(time, ctime(&t));
+	time[strlen(time) - 4] = '\0';
 	FILE * fd;
-	#ifdef LOG_FILE
-		fd = fopen(LOG_FILE, "a");
-		if (fd == 0) {
-			printf("fd is zero \n");
-		}
-	#else
-		fd = (FILE *)1; // stdin
-	#endif
 
-	va_list args;
-    va_start( args, format );
-    fprintf(fd, format, args );
-    va_end( args );
+	fd = fopen(LOG_FILE, "a");
+	if (fd == 0) {
+		printf("fd is zero \n");
+	}
+    fprintf(fd, "%s\b || %s \n", time, msg );
 	fclose(fd);
 }
 
