@@ -26,21 +26,35 @@ void * config(void * arg){
 				cmd = get_line();
 
 				if(strcmp(cmd, RULE_ADD) == 0) {
-					printf("PORT ACTION DIRECTION SRT DST PROTO\n eg: ALLOW IN 1.1.1.1 any http\n");
+					printf("PORT ACTION DIRECTION SRC DST PROTO\n eg: 1 ALLOW IN 1.1.1.1 any 80\n");
 					printf(" > ");
-					char a[100];
-					char d[100];
-					char dst[100];
-					char src[100];
-
-					int i;
-					
-					cmd = get_line();
+					char * p 	= (char *) calloc(20, 1);
+					char * a 	= (char *) calloc(20, 1);
+					char * d 	= (char *) calloc(20, 1);
+					char * dst 	= (char *) calloc(20, 1);
+					char * src 	= (char *) calloc(20, 1);
+					char * proto = (char *) calloc(20, 1);
+					printf("PORT (1 or 2):\t");					
+					scanf("%s", p);
+					printf("ACTION (allow or deny):\t");
+					scanf("%s", a);
+					printf("DIRECTION (in or our):\t");
+					scanf("%s", d);
+					printf("SRC_ADDR:\t");
+					scanf("%s", src);
+					printf("DST_ADDR:\t");
+					scanf("%s", dst);
+					printf("PORTOCOL PORT:\t");
+					scanf("%s", proto);
+					//int i;
+					create_rule(p, a, d, src, dst, proto);
+					//cmd = get_line();
 
 				} else if(strcmp(cmd, RULE_DELETE) == 0){
 					int id;
-					printf("\tRule id: ");
+					printf("Rule id: ");
 					scanf("%d", &id);
+					LL_delete(rules_ll, id);
 
 				} else if(strcmp(cmd, RULE_LIST) == 0){
 					printf("Following rules are activated:\n");
@@ -50,10 +64,10 @@ void * config(void * arg){
 				} else if(strcmp(cmd, MAC_DELETE) == 0){
 					printf("Deleting entire mac table...\n ");
 					clear_mac();
-				} else if (strcmp(cmd, QUIT) == 0){
+				} else if (strcmp(cmd, QUIT) == 0 || strcmp(cmd, "q") == 0){
 					pause_rendering = 0;
 					break;
-				} else if(strcmp(cmd, "help") == 0){
+				} else if(strcmp(cmd, "help") == 0 || strcmp(cmd, "?") == 0){
 					printf("List of commands:\n");
 					printf(" %s\n", RULE_ADD);
 					printf(" %s\n", RULE_DELETE);
@@ -63,6 +77,8 @@ void * config(void * arg){
 				}
 
 			}
+		} else if (c == 'm'){
+			mock_rule();
 		}
 
 	}

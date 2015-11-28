@@ -23,19 +23,9 @@ Matej Bellus
 #include "stdarg.h"
 
 
+#include "stats.h"
+#include "port.h"
 
-
-
-typedef struct Port {
-	int id;
-	char * name;
-	pcap_t * handle;
-	pthread_t thread;
-
-	u_long in;
-	u_long out;
-
-}Port;
 pthread_mutex_t mutex;
 int pause_rendering = 0;
 
@@ -44,30 +34,15 @@ char log_b[1024];
 
 // custom includes
 #include "functions.h"
+
 #include "eth_parser.h"
 #include "mac_table.h"
-#include "config.h"
 #include "rules.h"
-
-
-
+#include "config.h"
 #include "port_listener.h"
 
 
 
-
-
-Port * create_port_struct(int i){
-	Port * p;
-	p = (Port *) malloc(sizeof(Port));
-	p->id = i;
-	p->name = (char *) calloc(1, 100);
-	p->handle = 0;
-	p->thread = 0;
-	p->in = 0;
-	p->out = 0;
-	return p;
-}
 
 void print_usage(){
 	printf("\nSoftware switch implementation by Matej Bellus (c) \n");
@@ -99,18 +74,14 @@ int main(int argc, char *argv[])
 {
 
 	signal (SIGINT, signal_handler);
-	printf("\033[?1049h\033[H");
+	//printf("\033[?1049h\033[H");
 
+
+	my_log("Software switch starting...");
+	my_log("Clear log..");
 	FILE * f;
 	f = fopen(LOG_FILE, "w");
 	fclose(f);
-
-	my_log("Software switch starting...");
-	// for (i = 5; i; i--) {
-	// 	printf("\rgoing back in %d...", i);
-	// 	fflush(stdout);
-	// 	sleep(1);
-	// }
 
 
 	int option = 0;
@@ -159,6 +130,7 @@ int main(int argc, char *argv[])
 
 	my_log("Deleting mac table..");
 	clear_mac();
+	
 	my_log("Creating threads...");
 	pthread_mutex_init(&mutex, NULL);
 	pthread_create(&(p1->thread), 0, port_listener, p1);
@@ -169,17 +141,19 @@ int main(int argc, char *argv[])
 	char c;
 
 	while (1) {
+		mac_delete_old_entries(5);
 		if(pause_rendering == 1)
 			continue;
 
 		// render here
 		system("clear");
 		print_mac();
-		printf("PORT 1 IN  %lu\n", p1->in);
-		printf("PORT 1 OUT %lu\n", p1->out);
-		printf("PORT 2 IN  %lu\n", p2->in);
-		printf("PORT 2 OUT %lu\n", p2->out);
-		sleep(2);
+		print_rules();
+		printf("PORT 1 IN  %lu\n", p1->in->l2_total);
+		printf("PORT 1 OUT %lu\n", p1->out->l2_total);
+		printf("PORT 2 IN  %lu\n", p2->in->l2_total);
+		printf("PORT 2 OUT %lu\n", p2->out->l2_total);
+		sleep(1);
 
 	}
 

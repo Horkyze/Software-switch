@@ -1,6 +1,6 @@
 HEADERS = functions.h
 CC = clang
-CFLAGS = -lpcap -lpthread -g
+CFLAGS = -lpcap -lpthread -g -O0
 
 default: s_switch
 

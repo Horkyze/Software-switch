@@ -19,6 +19,14 @@ void my_log(char * msg){
 	fclose(fd);
 }
 
+char * get_time(time_t * tt){
+    char * t = (char *) calloc(1, 20);
+    t = ctime(tt);
+    memset(t, 0, 11);
+    memset(t+20, 0, 1);
+    return (char *)(t +11);
+}
+
 int is_print(u_char c){
 	return (c > 31 && c <= 127);
 }
@@ -198,7 +206,7 @@ char * get_line() {
 typedef struct LL {
 	void * head;
 	u_int number_of_items;
-
+    int auto_increment;
 }LL;
 
 typedef struct Item {
@@ -211,6 +219,7 @@ LL * LL_init(){
 	LL * ll = malloc(sizeof(LL));
 	ll->head = 0;
 	ll->number_of_items = 0;
+    ll->auto_increment = 0;
 	return ll;
 }
 
@@ -218,7 +227,8 @@ Item * LL_add(LL * ll, void * data){
 	Item * item = malloc(sizeof(Item));
 	item->data = data;
 	item->next = 0;
-	ll->number_of_items++;
+    ll->number_of_items++;
+	ll->auto_increment++;
 
 	if (ll->head == 0){
 		ll->head = item;
@@ -234,10 +244,49 @@ Item * LL_add(LL * ll, void * data){
 	}
 	curr->next = item;
 
-
-
 	item->index = ll->number_of_items;
 	return item;
+}
+
+Item * LL_add_to_front(LL * ll, void * data){
+    Item * item = malloc(sizeof(Item));
+    item->data = data;
+    item->next = ll->head;
+
+    ll->head = item;
+    ll->number_of_items++;
+    ll->auto_increment++;
+    return item;
+}
+
+// delete nth item from list, 0 is the first element
+void LL_delete(LL * ll, int n)
+{
+    if(n > ll->number_of_items || n < 0)
+        return;
+
+    Item * curr, *prev;
+
+    curr = ll->head;
+    prev = 0;
+
+    for (int i = 0; curr; ++i){
+        if (i == n){
+            // delete this
+            if (prev){
+                prev->next = curr->next;          
+            } else {
+                ll->head = curr->next;
+            }
+            free(curr);
+            ll->number_of_items--;
+            return;
+        }
+
+        prev = curr;
+        curr = curr->next;
+    }
+
 }
 
 void LL_print(LL * ll){
