@@ -149,10 +149,11 @@ int main(int argc, char *argv[])
 		system("clear");
 		print_mac();
 		print_rules();
-		printf("PORT 1 IN  %lu\n", p1->in->l2_total);
-		printf("PORT 1 OUT %lu\n", p1->out->l2_total);
-		printf("PORT 2 IN  %lu\n", p2->in->l2_total);
-		printf("PORT 2 OUT %lu\n", p2->out->l2_total);
+		print_stats_header();
+		print_stats(p1->in, "1 IN");
+		print_stats(p1->out, "1 OUT");
+		print_stats(p2->in, "2 IN");
+		print_stats(p2->out, "2 OUT");
 		sleep(1);
 
 	}

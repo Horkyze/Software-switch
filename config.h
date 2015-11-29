@@ -46,9 +46,7 @@ void * config(void * arg){
 					scanf("%s", dst);
 					printf("PORTOCOL PORT:\t");
 					scanf("%s", proto);
-					//int i;
 					create_rule(p, a, d, src, dst, proto);
-					//cmd = get_line();
 
 				} else if(strcmp(cmd, RULE_DELETE) == 0){
 					int id;
@@ -58,7 +56,8 @@ void * config(void * arg){
 
 				} else if(strcmp(cmd, RULE_LIST) == 0){
 					printf("Following rules are activated:\n");
-					for (size_t i = 0; i < 5; i++) {
+					size_t i;
+					for (i = 0; i < 5; i++) {
 						printf("Rule..\n");
 					}
 				} else if(strcmp(cmd, MAC_DELETE) == 0){

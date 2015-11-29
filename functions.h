@@ -266,11 +266,11 @@ void LL_delete(LL * ll, int n)
         return;
 
     Item * curr, *prev;
-
+    int i;
     curr = ll->head;
     prev = 0;
 
-    for (int i = 0; curr; ++i){
+    for (i = 0; curr; ++i){
         if (i == n){
             // delete this
             if (prev){

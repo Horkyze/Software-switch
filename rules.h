@@ -1,13 +1,10 @@
-#define R_ANY 0
+#define R_ANY -1
 #define R_ALLOW 1
 #define R_DENY 2
 #define R_IN 3
 #define R_OUT 4
 #define R_IP 5
 #define R_MAC 6
-#define R_HTTP 7
-#define R_TCP 7
-#define R_ICMP 7
 
 
 
@@ -35,8 +32,6 @@ void mock_rule(){
     r->direction = R_OUT;
     r->dst_addr = "192.168.2.5";
     r->src_addr = "any";
-    //strcpy("192.168.1.5", r->dst_addr);
-    //strcpy("any", r->src_addr);
     r->proto = 80;
     r->src_addr_type = R_ANY;
     r->dst_addr_type = R_IP;
@@ -49,8 +44,8 @@ void mock_rule(){
 
 void create_rule(char * port, char * action, char * direction, char * dst, char * src, char * proto){
     Rule * r = (Rule *) malloc(sizeof(Rule));
-    r->src_addr = (char *) malloc(20);
-    r->dst_addr = (char *) malloc(20);
+    r->src_addr = (char *) calloc(20, 1);
+    r->dst_addr = (char *) calloc(20, 1);
 
 
     if (strcasecmp(port, "1") == 0) {
@@ -80,29 +75,39 @@ void create_rule(char * port, char * action, char * direction, char * dst, char 
         return;
     }
 
-    if (is_valid_mac(src)) {
-        strcpy(src, r->src_addr);
+    if (strcasecmp(src, "any") == 0) {
+        strcpy(r->src_addr, src);
+        r->src_addr_type = R_ANY;
+    } else if (is_valid_mac(src)) {
+        strcpy(r->src_addr, src);
         r->src_addr_type = R_MAC;
     } else if (is_valid_ip(src)) {
-        strcpy(src, r->src_addr);
+        strcpy(r->src_addr, src);
         r->src_addr_type = R_IP;
     } else {
         printf("Invalid input at src\n");
         return;
     }
 
-    if (is_valid_mac(dst)) {
-        strcpy(dst, r->dst_addr);
+    if (strcasecmp(dst, "any") == 0) {
+        strcpy(r->dst_addr, dst);
+        r->dst_addr_type = R_ANY;
+    } else if (is_valid_mac(dst)) {
+        strcpy(r->dst_addr, dst);
         r->dst_addr_type = R_MAC;
     } else if (is_valid_ip(dst)) {
-        strcpy(dst, r->dst_addr);
+        strcpy(r->dst_addr, dst);
         r->dst_addr_type = R_IP;
     } else {
         printf("Invalid input at dst\n");
         return;
     }
 
-    r->proto = atoi(proto);
+    if (strcasecmp(proto, "any") == 0) {
+        r->proto = R_ANY;
+    } else {
+        r->proto = atoi(proto);
+    }
 
     if (rules_ll == 0){
         rules_ll = LL_init();
@@ -113,13 +118,13 @@ void create_rule(char * port, char * action, char * direction, char * dst, char 
 
 void print_rules(){
     if (rules_ll == 0){
-        printf("No rules added yet, you can do so by entering config mode, press 'c' and hit Enter\n");
+        printf("\nNo rules added yet, you can do so by entering config mode, press 'c' and hit Enter\n");
         return;
     }
  
     Item * curr = (Item *) rules_ll->head;
     int i = 0;
-    printf("%d Rule(s) are saved\n ID \t PORT \t ALLOW/DENY \t IN/OUT \t SRC_ADDR \t DST_ADDR \t PROTO\n", rules_ll->number_of_items);
+    printf("\n%d Rule(s) are saved\n ID \t PORT \t ALLOW/DENY \t IN/OUT \t SRC_ADDR \t DST_ADDR \t PROTO\n", rules_ll->number_of_items);
     printf("----------------------------------------------------------------------------------------\n");
     while(curr){
         printf("%2i \t %i \t %s \t\t %s \t\t %s \t\t %s \t %i\n", 
