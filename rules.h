@@ -1,12 +1,5 @@
-#define R_ANY -1
-#define R_ALLOW 1
-#define R_DENY 2
-#define R_IN 3
-#define R_OUT 4
-#define R_IP 5
-#define R_MAC 6
 
-
+#define R ((Rule*)curr->data)
 
 typedef struct Rule {
 	int id;
@@ -26,15 +19,15 @@ void mock_rule(){
     Rule * r = (Rule *) malloc(sizeof(Rule));
     r->src_addr = (char *) malloc(20);
     r->dst_addr = (char *) malloc(20);
-    r->id = 1;
+    r->id = 0;
     r->port = p1;
-    r->action = R_DENY;
-    r->direction = R_OUT;
-    r->dst_addr = "192.168.2.5";
+    r->action = R_ALLOW;
+    r->direction = R_IN;
+    r->dst_addr = "any";
     r->src_addr = "any";
-    r->proto = 80;
+    r->proto = R_ANY;
     r->src_addr_type = R_ANY;
-    r->dst_addr_type = R_IP;
+    r->dst_addr_type = R_ANY;
 
     if (rules_ll == 0){
         rules_ll = LL_init();
@@ -121,29 +114,80 @@ void print_rules(){
         printf("\nNo rules added yet, you can do so by entering config mode, press 'c' and hit Enter\n");
         return;
     }
- 
+
     Item * curr = (Item *) rules_ll->head;
     int i = 0;
     printf("\n%d Rule(s) are saved\n ID \t PORT \t ALLOW/DENY \t IN/OUT \t SRC_ADDR \t DST_ADDR \t PROTO\n", rules_ll->number_of_items);
     printf("----------------------------------------------------------------------------------------\n");
     while(curr){
-        printf("%2i \t %i \t %s \t\t %s \t\t %s \t\t %s \t %i\n", 
-            i, 
-            ((Rule *)curr->data)->port->id, 
-            ( ((Rule *)curr->data)->action == R_ALLOW )? "allow" : "deny",
-            ( ((Rule *)curr->data)->direction == R_IN )? "in" : "out",
-            ((Rule *)curr->data)->src_addr,
-            ((Rule *)curr->data)->dst_addr,
-            ((Rule *)curr->data)->proto
+        printf("%2i \t %i \t %s \t\t %s \t\t %s \t\t %s \t %i\n",
+            i,
+            R->port->id,
+            ( R->action == R_ALLOW )? "allow" : "deny",
+            ( R->direction == R_IN )? "in" : "out",
+            R->src_addr,
+            R->dst_addr,
+            R->proto
         );
         curr = curr->next;
         i++;
     }
 
 }
-int apply_rules(Frame * f){
-    int forward = 1;
+int apply_rules(Frame * f, Port * p, int direction){
+    int forward = (DEFAULT_ACTION == R_ALLOW);
 
+    if (rules_ll == 0){
+        return forward;
+    }
+
+    Item * curr = (Item *) rules_ll->head;
+    for(; curr; curr = curr->next){
+
+        // port fits
+        if ( ! (R->port == p) ){
+			sprintf(log_b, "Wrong port %i", p->id);
+			my_log(log_b);
+            continue;
+        }
+
+        // direction check
+        if ( !(direction == R->direction) ) {
+			sprintf(log_b, "Wrong direction %i", direction);
+			my_log(log_b);
+            continue;
+        }
+
+        // src address check
+        if ( !(     strcmp(R->src_addr, "any") == 0
+				||	strcmp(R->src_addr, get_src_mac(f)) == 0
+				||	strcmp(R->src_addr, get_src_ip(f)) == 0
+			) ) {
+			sprintf(log_b, "Wrong src");
+			my_log(log_b);
+            continue;
+    	}
+
+
+		// dst address check
+        if ( !(     strcmp(R->dst_addr, "any") == 0
+				||	strcmp(R->dst_addr, get_dst_mac(f)) == 0
+				||	strcmp(R->dst_addr, get_dst_ip(f)) == 0
+			) ) {
+			sprintf(log_b, "Wrong dst");
+			my_log(log_b);
+            continue;
+    	}
+
+
+        if ( !( R_ANY == R->proto || R->proto == f->l5 ) ) {
+			my_log("Wrong proto");
+			continue;
+        }
+
+		forward = (R->action == R_ALLOW);
+		break;
+    }
 
     return forward;
 }

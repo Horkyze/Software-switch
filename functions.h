@@ -1,4 +1,4 @@
-#ifndef FUNSTIONS_H
+	#ifndef FUNSTIONS_H
 #define FUNSTIONS_H
 
 void my_log(char * msg){
@@ -274,7 +274,7 @@ void LL_delete(LL * ll, int n)
         if (i == n){
             // delete this
             if (prev){
-                prev->next = curr->next;          
+                prev->next = curr->next;
             } else {
                 ll->head = curr->next;
             }

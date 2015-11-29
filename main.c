@@ -22,20 +22,41 @@ Matej Bellus
 #include "stdlib.h"
 #include "stdarg.h"
 
+#define ETH2_TYPE 2
+#define IP4_TYPE 0x0008 // 0x0800 -> 0x0008 due to endianness
+#define ARP_TYPE 0x0608 // 0x8060 -> 0x0608 due to endianness
+#define ICMP_TYPE 0x01 // 0x8060 -> 0x0608 due to endianness
+#define UDP_TYPE  0x11 // 0x8060 -> 0x0608 due to endianness
+#define TCP_TYPE  0x06 // 0x8060 -> 0x0608 due to endianness
 
-#include "stats.h"
-#include "port.h"
-
-pthread_mutex_t mutex;
-int pause_rendering = 0;
-
-Port *p1, *p2;
+#define R_ANY -1
+#define R_ALLOW 1
+#define R_DENY 0
+#define R_IN 3
+#define R_OUT 4
+#define R_IP 5
+#define R_MAC 6
+#define DEFAULT_ACTION R_ALLOW
 char log_b[1024];
 
 // custom includes
 #include "functions.h"
 
+#include "stats.h"
+
 #include "eth_parser.h"
+#include "l3_parser.h"
+#include "l4_parser.h"
+#include "l5_parser.h"
+
+
+
+pthread_mutex_t mutex;
+int pause_rendering = 0;
+
+Port *p1, *p2;
+
+
 #include "mac_table.h"
 #include "rules.h"
 #include "config.h"
@@ -66,7 +87,7 @@ void list_interfaces(){
 
 void signal_handler(){
 	my_log("Ctrl C - cya ;) ");
-	printf("\033[?1049l"); // go back
+	//printf("\033[?1049l"); // go back
 	exit(0);
 }
 
@@ -130,16 +151,22 @@ int main(int argc, char *argv[])
 
 	my_log("Deleting mac table..");
 	clear_mac();
-	
+
 	my_log("Creating threads...");
 	pthread_mutex_init(&mutex, NULL);
-	pthread_create(&(p1->thread), 0, port_listener, p1);
-	pthread_create(&(p2->thread), 0, port_listener, p2);
+	if ( pthread_create(&(p1->thread), 0, port_listener, (void *)p1) ){
+		my_log("Error creating p1 thread");
+		exit(-1);
+	}
+	if ( pthread_create(&(p2->thread), 0, port_listener, (void *)p2) ){
+		my_log("Error creating p2 thread");
+		exit(-1);
+	}
 
 	pthread_t config_thread;
 	pthread_create(&config_thread, 0, config, 0);
 	char c;
-
+	mock_rule();
 	while (1) {
 		mac_delete_old_entries(5);
 		if(pause_rendering == 1)
@@ -162,7 +189,7 @@ int main(int argc, char *argv[])
 	pthread_join(p1->thread, 0);
 	pthread_join(p2->thread, 0);
 
-	printf("\033[?1049l"); // go back
+	//printf("\033[?1049l"); // go back
 
 	return 0;
 }
