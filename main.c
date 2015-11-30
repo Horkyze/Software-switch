@@ -27,7 +27,7 @@ Matej Bellus
 #define ARP_TYPE 0x0608 // 0x8060 -> 0x0608 due to endianness
 #define ICMP_TYPE 0x01
 #define UDP_TYPE  0x11
-#define TCP_TYPE  0x06 
+#define TCP_TYPE  0x06
 
 #define R_ANY -1
 #define R_ALLOW 1
