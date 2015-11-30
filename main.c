@@ -25,9 +25,9 @@ Matej Bellus
 #define ETH2_TYPE 2
 #define IP4_TYPE 0x0008 // 0x0800 -> 0x0008 due to endianness
 #define ARP_TYPE 0x0608 // 0x8060 -> 0x0608 due to endianness
-#define ICMP_TYPE 0x01 // 0x8060 -> 0x0608 due to endianness
-#define UDP_TYPE  0x11 // 0x8060 -> 0x0608 due to endianness
-#define TCP_TYPE  0x06 // 0x8060 -> 0x0608 due to endianness
+#define ICMP_TYPE 0x01
+#define UDP_TYPE  0x11
+#define TCP_TYPE  0x06 
 
 #define R_ANY -1
 #define R_ALLOW 1

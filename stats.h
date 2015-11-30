@@ -69,7 +69,7 @@ Port * create_port_struct(int i){
 
 void update_stats(Frame * f, Port * p, int direction){
 	Stats * s = (direction == R_IN)? p->in : p->out;
-	
+
 	if (f->l2 == ETH2_TYPE) {
 		s->l2_total++;
 	} else {
@@ -100,5 +100,5 @@ void print_stats_header(){
 
 void print_stats(Stats * s, const char * port){
 	printf("%s\t%lu\t%lu\t%lu\t%lu\t%lu\t%lu\t%lu\t%lu\t%lu\t \n",
-		port, s->l2_total, s->l3_ip, s->l3_ip, s->l3_icmp, s->l4_tcp, s->l4_udp, s->l5_http, s->l5_telnet, s->l5_other);
+		port, s->l2_total, s->l3_ip, s->l3_icmp, s->l3_arp, s->l4_tcp, s->l4_udp, s->l5_http, s->l5_telnet, s->l5_other);
 }
