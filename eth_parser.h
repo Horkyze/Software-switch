@@ -1,30 +1,9 @@
-/*=======================================
-=            Ethernet Parser            =
-=======================================*/
-
-
-/*==========  Variables / Constants  ==========*/
-
-
-
-
-
 const u_char eth_max[] = {0x06, 0x00}; // 1536
-
-// link layer codes
-const u_char arp[]  =  {0x08, 0x06};
-const u_char ipv4[] =  {0x08, 0x00};
-
-// Linked list of all frames
-LL * frames_ll;
-
 
 // macro for referencing eth II header
 #define EthII ((eth_2_h*)f->eth_header)
 
 /*==========  Ethernet Headers Definitions  ==========*/
-
-
 typedef	struct eth_2_h
 {
 	u_char dst_addr[6];
@@ -113,10 +92,6 @@ Frame * add_frame(u_char * data, int length, Port * p, int d){
 
 	struct eth_2_h * hdr = (eth_2_h *) data;
 
-	if(frames_ll == 0) {
-		frames_ll = LL_init();
-	}
-
 	Frame * frame = calloc(sizeof(Frame), 1);
 	frame->length = length;
 	frame->data = malloc(length);
@@ -131,27 +106,8 @@ Frame * add_frame(u_char * data, int length, Port * p, int d){
 	}
 
 	memcpy ( frame->data, data, length);
-	frame->number = frames_ll->number_of_items+1;
 
 	parse_l2(frame);
 
-	//LL_add(frames_ll, frame);
-
     return frame;
 }
-
-
-
-// void print_frames(){
-// 	int i = 0;
-// 	Frame * f;
-// 	Item * curr;
-// 	curr = frames_ll->head;
-// 	while(curr) {
-//
-// 		f = curr->data;
-// 		print_eth(f);
-//
-// 	    curr = curr->next;
-// 	}
-// }

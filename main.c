@@ -91,28 +91,29 @@ void signal_handler(){
 	exit(0);
 }
 
-int main(int argc, char *argv[])
-{
-
-	signal (SIGINT, signal_handler);
-	//printf("\033[?1049h\033[H");
-
-
-	my_log("Software switch starting...");
+void clear_log(){
 	my_log("Clear log..");
 	FILE * f;
 	f = fopen(LOG_FILE, "w");
 	fclose(f);
+}
 
+int main(int argc, char *argv[])
+{
+	signal (SIGINT, signal_handler);
+	//printf("\033[?1049h\033[H");
+
+	my_log("Software switch starting...");
+	clear_log();
 
 	int option = 0;
-	char * p1_interface = 0, * p2_interface = 0;
-	pthread_t p1_listener;
-	char errbuf[PCAP_ERRBUF_SIZE];	/* Error string */
+	char c;
+	pthread_t config_thread;
+	char errbuf[PCAP_ERRBUF_SIZE];
 	p1 = create_port_struct(1);
 	p2 = create_port_struct(2);
 
-	while ((option = getopt(argc, argv,"h l 1:2:")) != -1) {
+	while ((option = getopt(argc, argv,"h l 1:2: m")) != -1) {
 		switch (option) {
 			case '1' :
 				strcpy(p1->name, optarg);
@@ -123,24 +124,27 @@ int main(int argc, char *argv[])
 			case 'l':
 				list_interfaces();
 				exit(0);
+			case 'm':
+				mock_rule();
+				break;
 			case 'h':
 			default: print_usage();
 				exit(EXIT_FAILURE);
 		}
 	}
 
-
 	p1->handle = pcap_create(p1->name, errbuf);
+	pcap_setdirection(p1->handle, PCAP_D_IN);
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
 		exit(-1);
-
 	} else {
 		sprintf(log_b, "Handle activated for %s", p1->name);
 		my_log(log_b);
 	}
 
 	p2->handle = pcap_create(p2->name, errbuf);
+	pcap_setdirection(p1->handle, PCAP_D_IN);
 	if ( pcap_activate(p2->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
 		exit(-1);
@@ -163,10 +167,8 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
-	pthread_t config_thread;
 	pthread_create(&config_thread, 0, config, 0);
-	char c;
-	mock_rule();
+
 	while (1) {
 		mac_delete_old_entries(5);
 		if(pause_rendering == 1)
