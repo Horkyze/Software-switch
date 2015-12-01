@@ -24,7 +24,8 @@ void mock_rule(){
     r->action = R_ALLOW;
     r->direction = R_IN;
     r->dst_addr = "any";
-    r->src_addr = "any";
+	r->src_addr = "C0:EE:FB:4A:C4:1D"; // oneplus2
+    //r->src_addr = "84:38:35:45:eb:1a"; // duskis
     r->proto = R_ANY;
     r->src_addr_type = R_ANY;
     r->dst_addr_type = R_ANY;
@@ -147,44 +148,45 @@ int apply_rules(Frame * f, Port * p, int direction){
         // port fits
         if ( ! (R->port == p) ){
 			sprintf(log_b, "Wrong port %i", p->id);
-			my_log(log_b);
+			//my_log(log_b);
             continue;
         }
 
         // direction check
         if ( !(direction == R->direction) ) {
 			sprintf(log_b, "Wrong direction %i", direction);
-			my_log(log_b);
+			//my_log(log_b);
             continue;
         }
 
         // src address check
-        if ( !(     strcmp(R->src_addr, "any") == 0
-				||	strcmp(R->src_addr, get_src_mac(f)) == 0
-				||	strcmp(R->src_addr, get_src_ip(f)) == 0
+        if ( !(     strcasecmp(R->src_addr, "any") == 0
+				||	strcasecmp(R->src_addr, get_src_mac(f)) == 0
+				||	strcasecmp(R->src_addr, get_src_ip(f)) == 0
 			) ) {
 			sprintf(log_b, "Wrong src");
-			my_log(log_b);
+			//my_log(log_b);
             continue;
     	}
 
 
 		// dst address check
-        if ( !(     strcmp(R->dst_addr, "any") == 0
-				||	strcmp(R->dst_addr, get_dst_mac(f)) == 0
-				||	strcmp(R->dst_addr, get_dst_ip(f)) == 0
+        if ( !(     strcasecmp(R->dst_addr, "any") == 0
+				||	strcasecmp(R->dst_addr, get_dst_mac(f)) == 0
+				||	strcasecmp(R->dst_addr, get_dst_ip(f)) == 0
 			) ) {
 			sprintf(log_b, "Wrong dst");
-			my_log(log_b);
+			//my_log(log_b);
             continue;
     	}
 
 
         if ( !( R_ANY == R->proto || R->proto == f->l5 ) ) {
-			my_log("Wrong proto");
+			//my_log("Wrong proto");
 			continue;
         }
 
+		my_log("Rule applied");
 		forward = (R->action == R_ALLOW);
 		break;
     }

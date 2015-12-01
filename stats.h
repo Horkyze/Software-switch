@@ -24,10 +24,8 @@ typedef struct Port {
 	char * name;
 	pcap_t * handle;
 	pthread_t thread;
-
 	Stats * in;
 	Stats * out;
-
 }Port;
 
 typedef struct Frame {

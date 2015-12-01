@@ -36,7 +36,7 @@ Matej Bellus
 #define R_OUT 4
 #define R_IP 5
 #define R_MAC 6
-#define DEFAULT_ACTION R_ALLOW
+#define DEFAULT_ACTION R_DENY
 char log_b[1024];
 
 int p1out = 0;
@@ -163,7 +163,9 @@ int main(int argc, char *argv[])
 
 	my_log("Deleting mac table..");
 	clear_mac();
-
+	sprintf(log_b, "Default action is %s", (DEFAULT_ACTION == R_ALLOW)? "R_ALLOW" : "R_DENY");
+	my_log(log_b);
+	
 	my_log("Creating threads...");
 	pthread_mutex_init(&mutex, NULL);
 	if ( pthread_create(&(p1->thread), 0, port_listener, (void *)p1) ){

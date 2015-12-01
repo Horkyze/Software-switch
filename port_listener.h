@@ -30,9 +30,9 @@ void * port_listener(void * arg) {
 
 	while (1) {
 		check = pcap_next_ex(p->handle, &header, &packet);
-		(p->id == 1)? p1in++ : p2in++;
 		pthread_mutex_lock(&mutex);
 		if (check) {
+			(p->id == 1)? p1in++ : p2in++;
 			sprintf(log_b, "Recieved frame on port %d (%s)", p->id, p->name);
 			//my_log(log_b);
 
@@ -45,6 +45,7 @@ void * port_listener(void * arg) {
 
 			// if rules are satisfied
 			if (forward ) {
+				my_log("Forwarding...");
 				update_stats(f, p, R_IN);
 
 				if(mac_table_search(get_src_mac(f)) == 0){
@@ -69,7 +70,7 @@ void * port_listener(void * arg) {
 			}
 		} else {
 			sprintf(log_b, "Failed to get frame: pcpa_next_ex returned: %i", check);
-			//my_log(log_b);
+			my_log(log_b);
 		}
 		pthread_mutex_unlock (&mutex);
 	}
