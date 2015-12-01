@@ -30,6 +30,7 @@ void * port_listener(void * arg) {
 
 	while (1) {
 		check = pcap_next_ex(p->handle, &header, &packet);
+		(p->id == 1)? p1in++ : p2in++;
 		pthread_mutex_lock(&mutex);
 		if (check) {
 			sprintf(log_b, "Recieved frame on port %d (%s)", p->id, p->name);
@@ -55,6 +56,8 @@ void * port_listener(void * arg) {
 
 				// to create malformed packets
 				//memcpy((void *) (packet + 6), brodcast_mac, 6);
+				(p->id == 1)? p1out++ : p2out++;
+
 				if (p->id == 1) {
 					forward_frame(p2, f);
 				} else {
@@ -66,7 +69,7 @@ void * port_listener(void * arg) {
 			}
 		} else {
 			sprintf(log_b, "Failed to get frame: pcpa_next_ex returned: %i", check);
-			my_log(log_b);
+			//my_log(log_b);
 		}
 		pthread_mutex_unlock (&mutex);
 	}

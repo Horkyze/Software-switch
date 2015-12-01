@@ -39,6 +39,12 @@ Matej Bellus
 #define DEFAULT_ACTION R_ALLOW
 char log_b[1024];
 
+int p1out = 0;
+int p2out = 0;
+int p1in = 0;
+int p2in = 0;
+
+
 // custom includes
 #include "functions.h"
 
@@ -135,6 +141,7 @@ int main(int argc, char *argv[])
 
 	p1->handle = pcap_create(p1->name, errbuf);
 	pcap_setdirection(p1->handle, PCAP_D_IN);
+	pcap_set_immediate_mode(p1->handle, 1);
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
 		exit(-1);
@@ -144,6 +151,7 @@ int main(int argc, char *argv[])
 	}
 
 	p2->handle = pcap_create(p2->name, errbuf);
+	pcap_set_immediate_mode(p2->handle, 1);
 	pcap_setdirection(p1->handle, PCAP_D_IN);
 	if ( pcap_activate(p2->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
@@ -183,6 +191,7 @@ int main(int argc, char *argv[])
 		print_stats(p1->out, "1 OUT");
 		print_stats(p2->in, "2 IN");
 		print_stats(p2->out, "2 OUT");
+		printf("p1in: %i\tp1out: %i\tp2in: %i\tp2out: %i\n", p1in, p1out, p2in, p2out);
 		sleep(1);
 
 	}
