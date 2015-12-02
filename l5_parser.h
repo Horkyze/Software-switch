@@ -31,9 +31,9 @@ typedef struct tcp_h{
 
 void parse_l5(Frame * f){
     if (f->l4 == UDP_TYPE) {
-        f->l5 = UDP->dport;
+        f->l5 = UDP->sport;
     } else if (f->l4 == TCP_TYPE) {
-        f->l5 = TCP->dport;
+        f->l5 = TCP->sport;
     }
 
 

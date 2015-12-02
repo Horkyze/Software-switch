@@ -5,13 +5,14 @@
 u_char brodcast_mac[] = {'\xff', '\xff', '\xff', '\xff', '\xff', '\xff'};
 
 int forward_frame(Port * p, Frame * f) {
-	int sent_bytes = pcap_inject(p->handle, f->data, f->length);
+	int sent_bytes = pcap_inject(p->handle, f->eth_header, f->length);
 	if (sent_bytes) {
 		update_stats(f, p, R_OUT);
-		sprintf(log_b, "Sent %i bytes via port 2 (%s)", sent_bytes, p->name);
-		//my_log(log_b);
-	} else {
-		my_log("Failed to send frame :(");
+		sprintf(log_b, "Sent %i bytes via port %i (%s)", sent_bytes, p->id, p->name);
+		if (p->id == 2)
+			my_log(log_b);
+	} else if(sent_bytes != f->length){
+		my_log("Failed to send frame with specific size :(");
 	}
 	return sent_bytes;
 }
@@ -33,8 +34,9 @@ void * port_listener(void * arg) {
 		pthread_mutex_lock(&mutex);
 		if (check) {
 			(p->id == 1)? p1in++ : p2in++;
-			sprintf(log_b, "Recieved frame on port %d (%s)", p->id, p->name);
-			//my_log(log_b);
+			sprintf(log_b, "Recieved %i bytes on port %d (%s)",
+			header->len, p->id, p->name);
+			my_log(log_b);
 
 			// more like parse frame..
 			f = add_frame((u_char*)packet, header->len, p, R_IN);
@@ -51,7 +53,7 @@ void * port_listener(void * arg) {
 				if(mac_table_search(get_src_mac(f)) == 0){
 					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_src_mac(f));
 					my_log(log_b);
-					memcpy((void *) (packet + 6), brodcast_mac, 6);
+					//memcpy((void *) (packet + 6), brodcast_mac, 6);
 				}
 				mac_table_insert(get_src_mac(f), p);
 

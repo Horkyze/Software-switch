@@ -36,7 +36,8 @@ Matej Bellus
 #define R_OUT 4
 #define R_IP 5
 #define R_MAC 6
-#define DEFAULT_ACTION R_DENY
+//#define DEFAULT_ACTION R_DENY
+#define DEFAULT_ACTION R_ALLOW
 char log_b[1024];
 
 int p1out = 0;
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
 	}
 
 	p1->handle = pcap_create(p1->name, errbuf);
-	pcap_setdirection(p1->handle, PCAP_D_IN);
+	//pcap_setdirection(p1->handle, PCAP_D_IN);
 	pcap_set_immediate_mode(p1->handle, 1);
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
@@ -152,7 +153,7 @@ int main(int argc, char *argv[])
 
 	p2->handle = pcap_create(p2->name, errbuf);
 	pcap_set_immediate_mode(p2->handle, 1);
-	pcap_setdirection(p1->handle, PCAP_D_IN);
+	//pcap_setdirection(p1->handle, PCAP_D_IN);
 	if ( pcap_activate(p2->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
 		exit(-1);
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
 	clear_mac();
 	sprintf(log_b, "Default action is %s", (DEFAULT_ACTION == R_ALLOW)? "R_ALLOW" : "R_DENY");
 	my_log(log_b);
-	
+
 	my_log("Creating threads...");
 	pthread_mutex_init(&mutex, NULL);
 	if ( pthread_create(&(p1->thread), 0, port_listener, (void *)p1) ){
