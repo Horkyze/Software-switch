@@ -6,13 +6,14 @@ u_char brodcast_mac[] = {'\xff', '\xff', '\xff', '\xff', '\xff', '\xff'};
 
 int forward_frame(Port * ppp, Frame * f) {
 	if (!apply_rules(f, ppp, R_OUT)) {
-		my_log("Outbout rules Failed");
+		sprintf(log_b, "\tPort %i (%s) OUTbound rules blocked this frame", ppp->id, ppp->name);
+		my_log(log_b);
 		return 0;
 	}
 	int sent_bytes = pcap_inject(ppp->handle, f->eth_header, f->length);
 	if (sent_bytes == f->length) {
 		update_stats(f, ppp, R_OUT);
-		sprintf(log_b, "Sent %i bytes via port %i (%s)", sent_bytes, ppp->id, ppp->name);
+		sprintf(log_b, "\t< -- Port %i (%s) sending %i bytes", ppp->id, ppp->name, sent_bytes);
 		my_log(log_b);
 	} else {
 		my_log("Failed to send frame with specific size :(");
@@ -22,13 +23,13 @@ int forward_frame(Port * ppp, Frame * f) {
 
 void * port_listener(void * arg) {
 	Frame * f;
-	Port * p;
+	Port * p, * tmp;
 	p = (Port *)arg;
 	Record * r;
 	int sent_bytes;
 	struct pcap_pkthdr * header;
 	const u_char * packet;
-	int forward, check;
+	int forward, check, filter_check;
 
 	sprintf(log_b, "Hello from thread on %s", p->name);
 	my_log(log_b);
@@ -38,19 +39,25 @@ void * port_listener(void * arg) {
 		pthread_mutex_lock(&mutex);
 		if (check) {
 
-			sprintf(log_b, "\nRecieved %i bytes on port %d (%s)",
-			header->len, p->id, p->name);
+			sprintf(log_b, "-- > Port %i (%s)\tgot %i bytes",
+			p->id, p->name, header->len);
 			my_log(log_b);
 
 			// more like parse frame..
 			f = add_frame((u_char*)packet, header->len, p, R_IN);
 			print_frame(f);
 
+			// check INBOUNT rules
+			// filter_check = apply_rules(f, p, R_IN);
+			// if (filter_check) {
+			//
+			// }
+			sprintf(log_b, "\tUpdating MAC table with mac %s", get_src_mac(f));
+			my_log(log_b);
 			mac_table_insert(get_src_mac(f), p);
 
 
-			// check INBOUNT rules
-			//forward = apply_rules(f, p, R_IN);
+
 
 			// if (strcasecmp( get_src_mac(f), "10:DD:B1:EB:36:10" ) == 0
 			//  || strcasecmp( get_src_mac(f), "10:9a:dd:42:8c:86" ) == 0
@@ -58,37 +65,36 @@ void * port_listener(void * arg) {
 			// 	 || strcasecmp( get_dst_mac(f), "10:9a:dd:42:8c:86" ) == 0 ) {
 			// 	forward = 0;
 			// }
-
-			r = mac_table_search(get_dst_mac(f));
-			if (r && r->p == p) {
-				// DO NOT FORWARD
-				forward = 0;
+			if (is_broadcast(f)) {
+				my_log("\tBroadcast");
+				r = 0;
+			} else {
+				r = mac_table_search(get_dst_mac(f));
+				sprintf(log_b, "\tSearching MAC table for (dst) %s", get_dst_mac(f));
+				my_log(log_b);
 			}
-			// if rules are satisfied
-			if (forward ) {
-				update_stats(f, p, R_IN);
 
-
-				if(mac_table_search(get_dst_mac(f)) == 0){
-					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_dst_mac(f));
-					my_log(log_b);
-					r = mac_table_insert(get_src_mac(f), p);
-					if (p == p1) {
-						forward_frame(p2, f);
-					} else {
-						forward_frame(p1, f);
-					}
-
+			if(r){
+				tmp = r->p;
+				sprintf(log_b, "\tMAC was found on port %i (%s)", tmp->id, tmp->name);
+				my_log(log_b);
+				if(tmp == p){
+					my_log("\tDo not send to the same port!");
 				} else {
-					sprintf(log_b, "MAC (%s) was FOUND", get_dst_mac(f));
-					my_log(log_b);
 					forward_frame(r->p, f);
 				}
 
-
 			} else {
-				my_log("Frame blocked by rule");
+				sprintf(log_b, "\tMAC was NOT found - broadcast");
+				my_log(log_b);
+				if (p == p1) {
+					forward_frame(p2, f);
+				} else {
+					forward_frame(p1, f);
+				}
 			}
+
+
 		} else {
 			sprintf(log_b, "Failed to get frame: pcpa_next_ex returned: %i", check);
 			my_log(log_b);

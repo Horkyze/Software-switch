@@ -158,7 +158,6 @@ int main(int argc, char *argv[])
 	}
 	if ( pcap_set_immediate_mode(p1->handle, 1) != 0){
 		printf("pcap_set_immediate_mode returned \n%s\n", pcap_geterr(p1->handle));
-
 		my_log("pcap_set_immediate_mode failed");
 		pcap_perror(p1->handle, 0);
 		exit(-1);

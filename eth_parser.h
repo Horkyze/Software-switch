@@ -65,7 +65,14 @@ char * get_dst_mac(Frame * f){
 	hdr = (eth_2_h*)f->eth_header;
 	return get_hex(hdr->dst_addr, 6, ':');
 }
-
+int is_broadcast(Frame * f){
+	char * c;
+	c = get_dst_mac(f);
+	if (strcasecmp(c, "ff:ff:ff:ff:ff:ff") == 0) {
+		return 1;
+	}
+	return 0;
+}
 void parse_l2(Frame * f){
 	if( EthII->eth_type >= 0x0006) {
 		// we got eth2
@@ -84,7 +91,7 @@ void parse_l2(Frame * f){
 void print_frame(Frame * f){
 	sprintf(log_b, "L2: %i\tL3: %i\tL4: %i\tL5: %i\t ",
 	f->l2, f->l3, f->l4, f->l5);
-	sprintf(log_b, "src: %s, dst: %s", get_src_mac(f), get_dst_mac(f));
+	sprintf(log_b, "\tsrc: %s, dst: %s", get_src_mac(f), get_dst_mac(f));
 	my_log(log_b);
 }
 

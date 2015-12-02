@@ -137,7 +137,7 @@ void print_rules(){
 }
 int apply_rules(Frame * f, Port * p, int direction){
     int forward = (DEFAULT_ACTION == R_ALLOW);
-
+	my_log("\tApplying rules..");
     if (rules_ll == 0){
         return forward;
     }
@@ -147,14 +147,14 @@ int apply_rules(Frame * f, Port * p, int direction){
 
         // port fits
         if ( ! (R->port == p) ){
-			sprintf(log_b, "Wrong port %i", p->id);
+			sprintf(log_b, "\tWrong port %i", p->id);
 			//my_log(log_b);
             continue;
         }
 
         // direction check
         if ( !(direction == R->direction) ) {
-			sprintf(log_b, "Wrong direction %i", direction);
+			sprintf(log_b, "\tWrong direction %i", direction);
 			//my_log(log_b);
             continue;
         }
@@ -164,7 +164,7 @@ int apply_rules(Frame * f, Port * p, int direction){
 				||	strcasecmp(R->src_addr, get_src_mac(f)) == 0
 				||	strcasecmp(R->src_addr, get_src_ip(f)) == 0
 			) ) {
-			sprintf(log_b, "Wrong src");
+			sprintf(log_b, "\tWrong src");
 			//my_log(log_b);
             continue;
     	}
@@ -175,7 +175,7 @@ int apply_rules(Frame * f, Port * p, int direction){
 				||	strcasecmp(R->dst_addr, get_dst_mac(f)) == 0
 				||	strcasecmp(R->dst_addr, get_dst_ip(f)) == 0
 			) ) {
-			sprintf(log_b, "Wrong dst");
+			sprintf(log_b, "\tWrong dst");
 			//my_log(log_b);
             continue;
     	}
@@ -186,7 +186,7 @@ int apply_rules(Frame * f, Port * p, int direction){
 			continue;
         }
 
-		my_log("Rule applied");
+		my_log("\tRule applied");
 		forward = (R->action == R_ALLOW);
 		break;
     }

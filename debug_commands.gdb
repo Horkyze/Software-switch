@@ -1,1 +1,1 @@
-r ./bin/s_switch -1 eth0 -2 lo
+r ./bin/s_switch -1 vboxnet0 -2 vboxnet1
