@@ -10,11 +10,11 @@ int forward_frame(Port * ppp, Frame * f) {
 		return 0;
 	}
 	int sent_bytes = pcap_inject(ppp->handle, f->eth_header, f->length);
-	if (sent_bytes) {
+	if (sent_bytes == f->length) {
 		update_stats(f, ppp, R_OUT);
 		sprintf(log_b, "Sent %i bytes via port %i (%s)", sent_bytes, ppp->id, ppp->name);
 		my_log(log_b);
-	} else if(sent_bytes != f->length){
+	} else {
 		my_log("Failed to send frame with specific size :(");
 	}
 	return sent_bytes;
@@ -24,6 +24,7 @@ void * port_listener(void * arg) {
 	Frame * f;
 	Port * p;
 	p = (Port *)arg;
+	Record * r;
 	int sent_bytes;
 	struct pcap_pkthdr * header;
 	const u_char * packet;
@@ -34,10 +35,10 @@ void * port_listener(void * arg) {
 
 	while (1) {
 		check = pcap_next_ex(p->handle, &header, &packet);
-		//pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&mutex);
 		if (check) {
-			(p->id == 1)? p1in++ : p2in++;
-			sprintf(log_b, "Recieved %i bytes on port %d (%s)",
+
+			sprintf(log_b, "\nRecieved %i bytes on port %d (%s)",
 			header->len, p->id, p->name);
 			my_log(log_b);
 
@@ -45,36 +46,44 @@ void * port_listener(void * arg) {
 			f = add_frame((u_char*)packet, header->len, p, R_IN);
 			print_frame(f);
 
-			// check INBOUNT rules
-			forward = apply_rules(f, p, R_IN);
+			mac_table_insert(get_src_mac(f), p);
 
+
+			// check INBOUNT rules
+			//forward = apply_rules(f, p, R_IN);
+
+			// if (strcasecmp( get_src_mac(f), "10:DD:B1:EB:36:10" ) == 0
+			//  || strcasecmp( get_src_mac(f), "10:9a:dd:42:8c:86" ) == 0
+			// 	 || strcasecmp( get_dst_mac(f), "10:9a:dd:42:8c:86" ) == 0
+			// 	 || strcasecmp( get_dst_mac(f), "10:9a:dd:42:8c:86" ) == 0 ) {
+			// 	forward = 0;
+			// }
+
+			r = mac_table_search(get_dst_mac(f));
+			if (r && r->p == p) {
+				// DO NOT FORWARD
+				forward = 0;
+			}
 			// if rules are satisfied
 			if (forward ) {
 				update_stats(f, p, R_IN);
 
 
-				if(mac_table_search(get_src_mac(f)) == 0){
-					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_src_mac(f));
+				if(mac_table_search(get_dst_mac(f)) == 0){
+					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_dst_mac(f));
 					my_log(log_b);
-				}
-				//Record * r = mac_table_insert(get_src_mac(f), p);
-				//if (r->p == p) {
-					my_log("Forwarding...");
-
-					if (p->id == 1) {
+					r = mac_table_insert(get_src_mac(f), p);
+					if (p == p1) {
 						forward_frame(p2, f);
-						my_log("PORT 2");
-					} else if (p->id == 2) {
-						forward_frame(p1, f);
-						my_log("PORT 1");
-
 					} else {
-						my_log("WTFFFFF");
+						forward_frame(p1, f);
 					}
-				// } else {
-				// 	my_log("record port == port");
-				// }
-				//(p->id == 1)? p1out++ : p2out++;
+
+				} else {
+					sprintf(log_b, "MAC (%s) was FOUND", get_dst_mac(f));
+					my_log(log_b);
+					forward_frame(r->p, f);
+				}
 
 
 			} else {
@@ -84,7 +93,7 @@ void * port_listener(void * arg) {
 			sprintf(log_b, "Failed to get frame: pcpa_next_ex returned: %i", check);
 			my_log(log_b);
 		}
-		//pthread_mutex_unlock (&mutex);
+		pthread_mutex_unlock (&mutex);
 	}
 
 	pcap_close(p->handle);

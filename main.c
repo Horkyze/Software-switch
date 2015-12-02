@@ -9,6 +9,7 @@ Matej Bellus
 
 #pragma pack(1)
 
+//#include "libpcap/pcap.h"
 #include <pcap.h>
 #include <arpa/inet.h>
 #include <getopt.h>
@@ -110,10 +111,11 @@ int main(int argc, char *argv[])
 	signal (SIGINT, signal_handler);
 	//printf("\033[?1049h\033[H");
 
-	my_log("Software switch starting...");
 	clear_log();
+	my_log("Software switch starting...");
+	my_log(pcap_lib_version());
 
-	int option = 0;
+	int option = 0, ret;
 	char c;
 	pthread_t config_thread;
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -141,8 +143,26 @@ int main(int argc, char *argv[])
 	}
 
 	p1->handle = pcap_create(p1->name, errbuf);
-	pcap_setdirection(p1->handle, PCAP_D_IN);
-	pcap_set_immediate_mode(p1->handle, 1);
+	// if ( (ret = pcap_setdirection(p1->handle, PCAP_D_IN)) != 0){
+	// 	printf("pcap_setdirection returned %i\n", ret);
+	// 	my_log("pcap_setdirection failed");
+	// 	pcap_perror(p1->handle, 0);
+	// 	//exit(-1);
+	// }
+	if ( pcap_set_promisc(p1->handle, 1) != 0){
+		printf("pcap_set_promisc returned \n%s\n", pcap_geterr(p1->handle));
+
+		my_log("pcap_set_promisc failed");
+		pcap_perror(p1->handle, 0);
+		exit(-1);
+	}
+	if ( pcap_set_immediate_mode(p1->handle, 1) != 0){
+		printf("pcap_set_immediate_mode returned \n%s\n", pcap_geterr(p1->handle));
+
+		my_log("pcap_set_immediate_mode failed");
+		pcap_perror(p1->handle, 0);
+		exit(-1);
+	}
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
 		exit(-1);
@@ -151,9 +171,25 @@ int main(int argc, char *argv[])
 		my_log(log_b);
 	}
 
+
+
+
 	p2->handle = pcap_create(p2->name, errbuf);
-	pcap_set_immediate_mode(p2->handle, 1);
-	pcap_setdirection(p1->handle, PCAP_D_IN);
+	// if ( pcap_setdirection(p2->handle, PCAP_D_OUT) != 0){
+	// 	my_log("pcap_setdirection failed");
+	// 	pcap_perror(p2->handle, 0);
+	// 	//exit(-1);
+	// }
+	if ( pcap_set_promisc(p2->handle, 1) != 0){
+		my_log("pcap_set_promisc failed");
+		pcap_perror(p2->handle, 0);
+		exit(-1);
+	}
+	if ( pcap_set_immediate_mode(p2->handle, 1) != 0){
+		my_log("pcap_set_immediate_mode failed");
+		pcap_perror(p2->handle, 0);
+		exit(-1);
+	}
 	if ( pcap_activate(p2->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
 		exit(-1);
@@ -161,6 +197,8 @@ int main(int argc, char *argv[])
 		sprintf(log_b, "Handle activated for %s", p2->name);
 		my_log(log_b);
 	}
+
+	//exit(0);
 
 	my_log("Deleting mac table..");
 	clear_mac();

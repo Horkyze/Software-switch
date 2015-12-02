@@ -84,7 +84,8 @@ void parse_l2(Frame * f){
 void print_frame(Frame * f){
 	sprintf(log_b, "L2: %i\tL3: %i\tL4: %i\tL5: %i\t ",
 	f->l2, f->l3, f->l4, f->l5);
-	//my_log(log_b);
+	sprintf(log_b, "src: %s, dst: %s", get_src_mac(f), get_dst_mac(f));
+	my_log(log_b);
 }
 
 

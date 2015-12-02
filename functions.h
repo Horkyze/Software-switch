@@ -1,7 +1,7 @@
 	#ifndef FUNSTIONS_H
 #define FUNSTIONS_H
 
-void my_log(char * msg){
+void my_log(const char * msg){
 
 	time_t t;
 	time(&t);
@@ -10,7 +10,7 @@ void my_log(char * msg){
 	strcpy(time, ctime(&t));
 	time[strlen(time) - 4] = '\0';
 	FILE * fd;
-	
+
 	fd = fopen(LOG_FILE, "a");
 	if (fd == 0) {
 		printf("fd is zero \n");
