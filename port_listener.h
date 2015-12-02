@@ -4,17 +4,16 @@
 
 u_char brodcast_mac[] = {'\xff', '\xff', '\xff', '\xff', '\xff', '\xff'};
 
-int forward_frame(Port * p, Frame * f) {
-	if (!apply_rules(f, p, R_OUT)) {
+int forward_frame(Port * ppp, Frame * f) {
+	if (!apply_rules(f, ppp, R_OUT)) {
 		my_log("Outbout rules Failed");
 		return 0;
 	}
-	int sent_bytes = pcap_inject(p->handle, f->eth_header, f->length);
+	int sent_bytes = pcap_inject(ppp->handle, f->eth_header, f->length);
 	if (sent_bytes) {
-		update_stats(f, p, R_OUT);
-		sprintf(log_b, "Sent %i bytes via port %i (%s)", sent_bytes, p->id, p->name);
-		if (p->id == 2)
-			my_log(log_b);
+		update_stats(f, ppp, R_OUT);
+		sprintf(log_b, "Sent %i bytes via port %i (%s)", sent_bytes, ppp->id, ppp->name);
+		my_log(log_b);
 	} else if(sent_bytes != f->length){
 		my_log("Failed to send frame with specific size :(");
 	}
@@ -35,7 +34,7 @@ void * port_listener(void * arg) {
 
 	while (1) {
 		check = pcap_next_ex(p->handle, &header, &packet);
-		pthread_mutex_lock(&mutex);
+		//pthread_mutex_lock(&mutex);
 		if (check) {
 			(p->id == 1)? p1in++ : p2in++;
 			sprintf(log_b, "Recieved %i bytes on port %d (%s)",
@@ -57,16 +56,18 @@ void * port_listener(void * arg) {
 				if(mac_table_search(get_src_mac(f)) == 0){
 					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_src_mac(f));
 					my_log(log_b);
-
 				}
-				Record * r = mac_table_insert(get_src_mac(f), p);
+				//Record * r = mac_table_insert(get_src_mac(f), p);
 				//if (r->p == p) {
 					my_log("Forwarding...");
 
 					if (p->id == 1) {
 						forward_frame(p2, f);
+						my_log("PORT 2");
 					} else if (p->id == 2) {
 						forward_frame(p1, f);
+						my_log("PORT 1");
+
 					} else {
 						my_log("WTFFFFF");
 					}
@@ -83,7 +84,7 @@ void * port_listener(void * arg) {
 			sprintf(log_b, "Failed to get frame: pcpa_next_ex returned: %i", check);
 			my_log(log_b);
 		}
-		pthread_mutex_unlock (&mutex);
+		//pthread_mutex_unlock (&mutex);
 	}
 
 	pcap_close(p->handle);
