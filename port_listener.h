@@ -5,6 +5,10 @@
 u_char brodcast_mac[] = {'\xff', '\xff', '\xff', '\xff', '\xff', '\xff'};
 
 int forward_frame(Port * p, Frame * f) {
+	if (!apply_rules(f, p, R_OUT)) {
+		my_log("Outbout rules Failed");
+		return 0;
+	}
 	int sent_bytes = pcap_inject(p->handle, f->eth_header, f->length);
 	if (sent_bytes) {
 		update_stats(f, p, R_OUT);
@@ -56,17 +60,19 @@ void * port_listener(void * arg) {
 
 				}
 				Record * r = mac_table_insert(get_src_mac(f), p);
-				if (r->p == p) {
+				//if (r->p == p) {
 					my_log("Forwarding...");
 
 					if (p->id == 1) {
 						forward_frame(p2, f);
-					} else {
+					} else if (p->id == 2) {
 						forward_frame(p1, f);
+					} else {
+						my_log("WTFFFFF");
 					}
-				} else {
-					my_log("record port == port");
-				}
+				// } else {
+				// 	my_log("record port == port");
+				// }
 				//(p->id == 1)? p1out++ : p2out++;
 
 
