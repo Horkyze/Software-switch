@@ -143,12 +143,12 @@ int main(int argc, char *argv[])
 	}
 
 	p1->handle = pcap_create(p1->name, errbuf);
-	// if ( (ret = pcap_setdirection(p1->handle, PCAP_D_IN)) != 0){
-	// 	printf("pcap_setdirection returned %i\n", ret);
-	// 	my_log("pcap_setdirection failed");
-	// 	pcap_perror(p1->handle, 0);
-	// 	//exit(-1);
-	// }
+	if ( (ret = pcap_setdirection(p1->handle, PCAP_D_IN)) != 0){
+		printf("pcap_setdirection returned %i\n", ret);
+		my_log("pcap_setdirection failed");
+		pcap_perror(p1->handle, 0);
+		//exit(-1);
+	}
 	if ( pcap_set_promisc(p1->handle, 1) != 0){
 		printf("pcap_set_promisc returned \n%s\n", pcap_geterr(p1->handle));
 
@@ -175,11 +175,11 @@ int main(int argc, char *argv[])
 
 
 	p2->handle = pcap_create(p2->name, errbuf);
-	// if ( pcap_setdirection(p2->handle, PCAP_D_OUT) != 0){
-	// 	my_log("pcap_setdirection failed");
-	// 	pcap_perror(p2->handle, 0);
-	// 	//exit(-1);
-	// }
+	if ( pcap_setdirection(p2->handle, PCAP_D_OUT) != 0){
+		my_log("pcap_setdirection failed");
+		pcap_perror(p2->handle, 0);
+		//exit(-1);
+	}
 	if ( pcap_set_promisc(p2->handle, 1) != 0){
 		my_log("pcap_set_promisc failed");
 		pcap_perror(p2->handle, 0);
