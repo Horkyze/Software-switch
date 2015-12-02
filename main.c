@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	}
 
 	p1->handle = pcap_create(p1->name, errbuf);
-	//pcap_setdirection(p1->handle, PCAP_D_IN);
+	pcap_setdirection(p1->handle, PCAP_D_IN);
 	pcap_set_immediate_mode(p1->handle, 1);
 	if ( pcap_activate(p1->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p1->handle));
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 
 	p2->handle = pcap_create(p2->name, errbuf);
 	pcap_set_immediate_mode(p2->handle, 1);
-	//pcap_setdirection(p1->handle, PCAP_D_IN);
+	pcap_setdirection(p1->handle, PCAP_D_IN);
 	if ( pcap_activate(p2->handle)){
 		printf("Failed to open interface %s\n", pcap_geterr(p2->handle));
 		exit(-1);

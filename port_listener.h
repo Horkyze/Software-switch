@@ -47,25 +47,28 @@ void * port_listener(void * arg) {
 
 			// if rules are satisfied
 			if (forward ) {
-				my_log("Forwarding...");
 				update_stats(f, p, R_IN);
+
 
 				if(mac_table_search(get_src_mac(f)) == 0){
 					sprintf(log_b, "MAC (%s) was not found - forward as brodcast", get_src_mac(f));
 					my_log(log_b);
-					//memcpy((void *) (packet + 6), brodcast_mac, 6);
+
 				}
-				mac_table_insert(get_src_mac(f), p);
+				Record * r = mac_table_insert(get_src_mac(f), p);
+				if (r->p == p) {
+					my_log("Forwarding...");
 
-				// to create malformed packets
-				//memcpy((void *) (packet + 6), brodcast_mac, 6);
-				(p->id == 1)? p1out++ : p2out++;
-
-				if (p->id == 1) {
-					forward_frame(p2, f);
+					if (p->id == 1) {
+						forward_frame(p2, f);
+					} else {
+						forward_frame(p1, f);
+					}
 				} else {
-					forward_frame(p1, f);
+					my_log("record port == port");
 				}
+				//(p->id == 1)? p1out++ : p2out++;
+
 
 			} else {
 				my_log("Frame blocked by rule");

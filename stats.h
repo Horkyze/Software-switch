@@ -78,9 +78,11 @@ void update_stats(Frame * f, Port * p, int direction){
 		s->l3_ip++;
 	} else if (f->l3 == ARP_TYPE) {
 		s->l3_arp++;
+		return;
 	}
 	if (f->l4 == ICMP_TYPE) {
 		s->l3_icmp++;
+		return;
 	}
 
 	if (f->l5 == 80) {

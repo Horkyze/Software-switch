@@ -51,7 +51,7 @@ void mac_delete_old_entries(int older_than){
 	int i = 0;
 	Item * curr = (Item *) mac_table_ll->head;
 	while(curr){
-		if ( t - ((Record *)curr->data)->last_update > older_than ){		
+		if ( t - ((Record *)curr->data)->last_update > older_than ){
 			sprintf(log_b, "AUTO deleted entry from mac table (%s)", ((Record *)curr->data)->mac );
 			my_log(log_b);
 			LL_delete(mac_table_ll, i);
@@ -77,22 +77,22 @@ Record * mac_table_search(char * mac){
 	return 0;
 }
 
-void mac_table_insert(char * mac, Port * p){
+Record * mac_table_insert(char * mac, Port * p){
 	if (mac_table_ll == 0){
 		mac_table_ll = LL_init();
 	}
 	time_t t;
+	Item * i;
 	Record * r = mac_table_search(mac);
 
 	t = time(NULL);
-	if (r){ 
+	if (r){
 		// if found update time
 		r->last_update = t;
+		return r;
 	} else {
 		// if not found, insert
-		LL_add(mac_table_ll, (void *) create_record_struct(mac, p, t));
-	}	
+		i = LL_add(mac_table_ll, (void *) create_record_struct(mac, p, t));
+		return i->data;
+	}
 }
-
-
-
